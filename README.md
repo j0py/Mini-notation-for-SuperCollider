@@ -47,9 +47,11 @@ More to be added later.
 Other methods controlling the ```number()``` or ```amp()``` could also have a mininotation specification as parameter.  
 With ```amp()``` you could then play accents or ghost notes.
 
-In Tidal you can say which of the given specifications finally determines the 'structure', that means the durations for the Pbind. In NP i will make two versions for each method: one regular, and one prefixed with an ```_``` character. If you call ```_snd()``` then the given specification for the sound will be used to create the structure for Pbind. The other specified data will "wrap along" in the Pbind.
+In Tidal you can say which of the given specifications finally determines the 'structure', that means the durations for the Pbind. In NP i will make two versions for each method: one regular, and one postfixed with an ```_``` character. If you call ```snd_()``` then the given specification for the sound will be used to create the structure for Pbind. The other specified data will "wrap along" in the Pbind.
 
-The rule will be that the _first_ called method that takes a specification will determine the structure for the Pbind. But the _last_ called ```_xxx``` method that takes a specification will override that.
+The rule will be that the _first_ called method that takes a specification will determine the structure for the Pbind. But the _last_ called ```xxx_``` method that takes a specification will override that.
+
+Lastly, the ```beats()``` method lets you specify howmany beats the given structure should represent. The default is 1 beat, but you could say 1.345 beats for example. The durations will then be all multiplied by this number.
 
 So far the description and ideas for this project.
 
@@ -83,6 +85,21 @@ p.clock.tempo_(60/60)
 
 Load it in SuperCollider.
 
-Also make sure that in the _same_ folder as where you created this file, a subfolder exists named ```samples``` and that this folder contains folders with samples.
+Also make sure that in the _same_ folder as where you created this file, a subfolder exists named ```samples``` and that this folder again contains subfolders with sample files in it (.wav, .aiff, etc).
 
 Then evaluate the lines above one by one. Have fun.
+
+## Example setting the structure and using amps and beats
+
+s.boot;
+
+NPSamples.load;
+
+p = ProxySpace.push(s).makeTempoClock(60/60).quant_(2);
+
+NP(~a).snd("bd <~ [~ bd:2]> ~ ~ sn ~ ~ ~").beats(2).play(0.5).mon(0.3);
+
+NP(~b).snd("~ ~ hh hh").amp_("0.2 0.8 0.2").play(0.5).mon(0.4);
+
+NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
+

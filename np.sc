@@ -3,7 +3,7 @@
 // example: NP(~a).snd("bd bd hh sn").play(0.8).mon(0.5)
 //
 NP {
-	var proxy, sound, notes, durmul=1;
+	var proxy, sound, notes, amps, structure, durmul=1;
 
 	*new { |a_proxy| ^super.new.init(a_proxy); }
 
@@ -17,10 +17,45 @@ NP {
 		^this;
 	}
 
-	snd { |val| sound = NPParser.new.parse(val); ^this }
+	snd { |val| 
+    sound = NPParser.new.parse(val); 
+    if(structure.isNil, { structure = sound; });
+    ^this;
+  }
 
-	num { |val| notes = NPParser.new.parse(val); ^this }
+	snd_ { |val| 
+    this.snd(val);
+    structure = sound;
+    ^this;
+  }
 
+	num { |val| 
+    notes = NPParser.new.parse(val); 
+    if(structure.isNil, { structure = notes; });
+    ^this;
+  }
+
+	num_ { |val| 
+    this.num(val);
+    structure = notes;
+    ^this;
+  }
+
+	amp { |val| 
+    amps = NPParser.new.parse(val); 
+    if(structure.isNil, { structure = amps; });
+    ^this;
+  }
+
+	amp_ { |val| 
+    this.amp(val);
+    structure = amps;
+    ^this;
+  }
+
+  // how many beats are represented by the structure? default 1 beat.
+  // you can slow down or speed up with this.
+  //
 	beats { |val| durmul = val.asFloat; ^this }
 
 	// plays the NodeProxy.
@@ -40,22 +75,34 @@ NP {
 		var envir = (
 			sound: sound,
 			notes: notes,
+      amps: amps,
+      structure: structure,
 			durmul: durmul,
 			cycle: -1,
 		);
 
     // add Pbind to the NodeProxy
 		proxy.put(
-			10,
+			10, // should be parameter?
 			Penvir(envir, Pbind(
-				\amp, amp.asFloat.clip(0.0, 1.0),
-				\group, NPSamples.groups[\src],
+				//\amp, amp.asFloat.clip(0.0, 1.0),
+
+				\amp, Pn(Plazy({ |ev|
+          var amps = [ amp ];
+
+					// amps will overrule
+					if(~amps.notNil, { amps = ~amps.names(~cycle) });
+
+					Pseq(amps).asFloat.clip(0.0, 1.0);
+				})),
+
+				\group, NPSamples.groups[\src], // should be parameter?
 
 				// generate a new dur pattern per cycle
 				// (there may be alternating steps)
 				\dur, Pn(Plazy({ |ev|
 					~cycle = ~cycle + 1;
-					Pseq(~sound.durs(~cycle) * ~durmul, 1);
+					Pseq(~structure.durs(~cycle) * ~durmul, 1);
 				})),
 
 				\samplename, Pn(Plazy({ |ev|
@@ -66,7 +113,7 @@ NP {
 					var numbers = ~sound.numbers(~cycle);
 
 					// notes will overrule numbers
-					if(notes.notNil, {
+					if(~notes.notNil, {
 						numbers = ~notes.names(~cycle);
 					});
 
