@@ -33,7 +33,7 @@ The structure / timing for the Pbind can also be derived from the given specific
 
 More information about this "mini-notation" can be found in various Tidal tutorials or documentation. The NPParser class (in np_mininotation.sc) takes care of parsing the specifications in mini-notation format.
 
-The ```play()``` method will create a Pbind on the NodeProxy, using the information that has been stored inside the NP class by other methods that were called before ```play()``` was called.
+The ```play()``` method will create a Pbind on the NodeProxy, using the information that has been stored inside the NP object by other methods that were called before ```play()``` was called.
 
 The parameter to ```play()``` is the volume with which the Pbind should play on the NodeProxy private bus.
 
@@ -59,7 +59,7 @@ I use ```git clone``` to get the sources somewhere on my disk.
 
 Then i go inside the ```~/.local/share/SuperCollider/Extensions``` folder, and i place there a _symbolic link_ to the folder where the sources are. Like this: ```ln -s ~/repos/Tidal-syntax-for-SClang np```.
 
-Then start SuperCollider, recompile the classes and the NP class should be avilable.
+Then start SuperCollider, recompile the classes and the NP class should be avilable. It appears to be that SuperCollider will follow symbolic links.
 
 One thing i need to do is give the NP class proper documentation so that SuperCollider will display the documentation in its class browser. Will figure that out.
 
