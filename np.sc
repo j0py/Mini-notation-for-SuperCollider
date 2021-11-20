@@ -218,8 +218,8 @@ Samples {
 	}
 }
 
-// NP4(~a).sound("bd bd hh sn").play(0.8).mon(0.5)
-NP4 {
+// NP(~a).sound("bd bd hh sn").play(0.8).mon(0.5)
+NP {
 	var proxy, sound, notes, durmul=1;
 
 	*new { |a_proxy| ^super.new.init(a_proxy); }
