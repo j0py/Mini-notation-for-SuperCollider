@@ -91,6 +91,7 @@ Then evaluate the lines above one by one. Have fun.
 
 ## Example setting the structure and using amps and beats
 
+```
 s.boot;
 
 NPSamples.load;
@@ -102,6 +103,7 @@ NP(~a).snd("bd <~ [~ bd:2]> ~ ~ sn ~ ~ ~").beats(2).play(0.5).mon(0.3);
 NP(~b).snd("~ ~ hh hh").amp_("0.2 0.8 0.2").play(0.5).mon(0.4);
 
 NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
+```
 
 ## More ideas to realize
 
