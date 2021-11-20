@@ -1,5 +1,5 @@
 // recursive mini-notation parser
-// the parser is the root node, has only children
+// the parser is the root node, it only has children, no siblings
 
 LogicalNode {
 	var <>parent, <children, <>prev, <>next;
