@@ -106,7 +106,7 @@ NP {
 					Pseq(amps).asFloat.clip(0.0, 1.0);
 				})),
 
-				\group, NPSamples.groups[\src], // should be parameter?
+				//\group, NPSamples.groups[\src], // should be parameter?
 
 				\samplename, Pn(Plazy({ |ev|
 					Pseq(~sound.names(~cycle));

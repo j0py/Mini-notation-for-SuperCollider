@@ -111,9 +111,20 @@ NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
 
 ```hex("92")```
 
-Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in hex equals binary "10010010", which takes me automatically to the next thing i can think of:
+Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in hex equals binary "10010010".
 
-```eul(3,8)```
+## Tidal syntax not supported yet
 
-```eul``` could define an Euler rythm. ```eul(3,8)``` would then be the same as ```bin("10010010")``` or ```hex("92")```.
+```!``` repeats the last step, e.g.: "bd bd bd" = "bd bd !" = "bd!3"
+
+```*``` "bd sn*2" = "bd [sn sn]" plays 2 snares in same step, so speeds up
+
+```/``` "bd sn/2" = "bd <sn ~>" plays 1/2 snare in one step, next cycle
+        it plays the other half of the snare, which yields silence.
+        slows down
+
+```@``` [bd sn@0.5] makes duration of the snare half as long
+
+```bd(3,8)``` euclidian rhythms ( bd:2(3,8) is also possible )
+
 
