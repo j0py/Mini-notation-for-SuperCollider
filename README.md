@@ -63,3 +63,26 @@ Then start SuperCollider, recompile the classes and the NP class should be avila
 
 One thing i need to do is give the NP class proper documentation so that SuperCollider will display the documentation in its class browser. Will figure that out.
 
+## Small example
+
+Create a ```.scd``` file with this code in it:
+
+```
+s.boot;
+
+NPSamples.load;
+
+p = ProxySpace.push(s).makeTempoClock(100/60).quant_(2);
+
+NP(~a).snd("bd:2 [sn:1 sn:1] ~ bd:2").play(0.5).mon(0.3);
+
+NP(~b).snd("~ ~ [hh hh hh] ~").play(0.5).mon(0.3);
+
+p.clock.tempo_(60/60)
+```
+
+Load it in SuperCollider.
+
+Also make sure that in the _same_ folder as where you created this file, a subfolder exists named ```samples``` and that this folder contains folders with samples.
+
+Then evaluate the lines above one by one. Have fun.
