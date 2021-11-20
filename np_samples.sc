@@ -33,16 +33,16 @@ NPSamples {
 			]);
 
 			SynthDef(\np_playbuf, {
-				arg buf, amp=1, pan=0, spread=1;
+				arg out=0, bufnum, amp=1, pan=0, spread=1;
 				var sig;
-				sig = PlayBuf.ar(2, buf, doneAction: 2);
+				sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum), doneAction: 2);
 				sig = Splay.ar(sig, spread, amp, pan);
-				Out.ar(\out.kr(0), sig);
+				Out.ar(out, sig);
 			}).add;
 
 			s.sync;
 
-			"Samples ready".postln;
+			("Samples" + samples.keys).postln;
 		});
 	}
 }

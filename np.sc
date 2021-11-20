@@ -85,7 +85,17 @@ NP {
 		proxy.put(
 			10, // should be parameter?
 			Penvir(envir, Pbind(
-				//\amp, amp.asFloat.clip(0.0, 1.0),
+
+				// generate a new dur pattern per cycle
+				// (there may be alternating steps)
+        // \dur MUST be calculated FIRST because it sets the new value
+        // for ~cycle in the environment for the Pbind.
+        // Following Plazy constructs depend on the ~cycle value
+        //
+				\dur, Pn(Plazy({ |ev|
+					~cycle = ~cycle + 1;
+					Pseq(~structure.durs(~cycle) * ~durmul, 1);
+				})),
 
 				\amp, Pn(Plazy({ |ev|
           var amps = [ amp ];
@@ -97,13 +107,6 @@ NP {
 				})),
 
 				\group, NPSamples.groups[\src], // should be parameter?
-
-				// generate a new dur pattern per cycle
-				// (there may be alternating steps)
-				\dur, Pn(Plazy({ |ev|
-					~cycle = ~cycle + 1;
-					Pseq(~structure.durs(~cycle) * ~durmul, 1);
-				})),
 
 				\samplename, Pn(Plazy({ |ev|
 					Pseq(~sound.names(~cycle));
@@ -126,13 +129,15 @@ NP {
 				}),
 
 				\instrument, Pfunc({ |ev|
-					var sample = NPSamples.samples
-					.at(ev.samplename.asSymbol);
+          if(ev.samplename == "~", \default, {
+            var sample = NPSamples.samples
+					  .at(ev.samplename.asSymbol);
 
-					if(sample.notNil,
-						\np_playbuf,
-						ev.samplename.asSymbol
-					);
+					  if(sample.notNil,
+						  \np_playbuf,
+						  ev.samplename.asSymbol
+					  );
+          });
 				}),
 
 				\midinote, Pfunc({ |ev|
@@ -141,13 +146,15 @@ NP {
 					}, ev.samplenumber);
 				}),
 
-				\buf, Pfunc({ |ev|
-					var sample = NPSamples.samples
-					.at(ev.samplename.asSymbol);
+				\bufnum, Pfunc({ |ev|
+          if(ev.samplename == "~", 0, {
+					  var sample = NPSamples.samples
+					  .at(ev.samplename.asSymbol);
 
-					if(sample.notNil, {
-						sample.wrapAt(ev.samplenumber);
-					}, 0);
+					  if(sample.notNil, {
+						  sample.wrapAt(ev.samplenumber).bufnum;
+					  }, 0);
+          });
 				}),
 
         // debugging
@@ -155,7 +162,8 @@ NP {
 					~cycle.asString 
           + ev.dur.asString 
           + ev.samplename 
-          + ev.samplenumber.asString;
+          + ev.samplenumber.asString
+          + ev.bufnum.asString;
 				}),
 			).trace(\trace))
 		);

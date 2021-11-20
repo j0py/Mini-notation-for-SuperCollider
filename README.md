@@ -103,3 +103,17 @@ NP(~b).snd("~ ~ hh hh").amp_("0.2 0.8 0.2").play(0.5).mon(0.4);
 
 NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
 
+## More ideas to realize
+
+```bin("10001010")```
+
+```bin``` could be used to declare the structure, thereby overriding all other structure defining method calls.
+
+```hex("92")```
+
+Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in hex equals binary "10010010", which takes me automatically to the next thing i can think of:
+
+```eul(3,8)```
+
+```eul``` could define an Euler rythm. ```eul(3,8)``` would then be the same as ```bin("10010010")``` or ```hex("92")```.
+
