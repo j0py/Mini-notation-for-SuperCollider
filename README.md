@@ -1,6 +1,8 @@
 # Tidal-syntax-for-SClang
 Use Tidal syntax to play with NodeProxy objects.
 
+## The idea
+
 When exploring Tidal i found the short syntax quite nice to use.
 
 This project tries to create that in SClang.
@@ -50,3 +52,14 @@ In Tidal you can say which of the given specifications finally determines the 's
 The rule will be that the _first_ called method that takes a specification will determine the structure for the Pbind. But the _last_ called ```_xxx``` method that takes a specification will override that.
 
 So far the description and ideas for this project.
+
+## Using it in SuperCollider
+
+I use ```git clone``` to get the sources somewhere on my disk.
+
+Then i go inside the ```~/.local/share/SuperCollider/Extensions``` folder, and i place there a _symbolic link_ to the folder where the sources are. Like this: ```ln -s ~/repos/Tidal-syntax-for-SClang np```.
+
+Then start SuperCollider, recompile the classes and the NP class should be avilable.
+
+One thing i need to do is give the NP class proper documentation so that SuperCollider will display the documentation in its class browser. Will figure that out.
+
