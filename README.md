@@ -117,6 +117,8 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in 
 
 ## Tidal syntax not supported yet
 
+```,``` paralell running steps
+
 ```!``` repeats the last step, e.g.: "bd bd bd" = "bd bd !" = "bd!3"
 
 ```*``` "bd sn*2" = "bd [sn sn]" plays 2 snares in same step, so speeds up
