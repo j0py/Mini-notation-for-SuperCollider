@@ -115,7 +115,7 @@ NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
 
 Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in hex equals binary "10010010".
 
-## Tidal syntax not supported yet
+## Tidal syntax not supported yet:
 
 ```,``` paralell running steps
 
