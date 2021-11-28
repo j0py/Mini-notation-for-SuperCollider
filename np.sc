@@ -3,7 +3,7 @@
 // example: NP(~a).snd("bd bd hh sn").play(0.8).mon(0.5)
 //
 NP {
-	var proxy, sound, notes, amps, structure, durmul=1;
+	var proxy, sound, notes, amps, struct;
 
 	*new { |a_proxy| ^super.new.init(a_proxy); }
 
@@ -18,49 +18,31 @@ NP {
 	}
 
 	snd { |val| 
-    sound = NPParser.new.parse(val); 
-    if(structure.isNil, { structure = sound; });
+    sound = NPParser.new.parse(val).post; 
+    if(struct.isNil, { struct = sound; });
     ^this;
   }
 
-	snd_ { |val| 
-    this.snd(val);
-    structure = sound;
-    ^this;
-  }
+	snd_ { |val| struct = nil; ^this.snd(val); }
 
 	num { |val| 
     notes = NPParser.new.parse(val); 
-    if(structure.isNil, { structure = notes; });
+    if(struct.isNil, { struct = notes; });
     ^this;
   }
 
-	num_ { |val| 
-    this.num(val);
-    structure = notes;
-    ^this;
-  }
+	num_ { |val| struct = nil; ^this.num(val); }
 
 	amp { |val| 
     amps = NPParser.new.parse(val); 
-    if(structure.isNil, { structure = amps; });
+    if(struct.isNil, { struct = amps; });
     ^this;
   }
 
-	amp_ { |val| 
-    this.amp(val);
-    structure = amps;
-    ^this;
-  }
-
-  // how many beats are represented by the structure? default 1 beat.
-  // you can slow down or speed up with this.
-  //
-	beats { |val| durmul = val.asFloat; ^this }
+	amp_ { |val| struct = nil; ^this.amp(val); }
 
 	// plays the NodeProxy.
   // @param vol: volume for the monitor
-  //
 	mon { |vol=0|
 		proxy.play(vol: vol.asFloat.clip(0.0, 1.0));
 		^this;
@@ -68,7 +50,6 @@ NP {
 
   // adds a Pbind that will play on the NodeProxy private bus
   // @param amp: volume (0.0 - 1.0) for the Pbind
-  //
 	play { |amp|
 
     // use an environment to count the cycles and hold all the data
@@ -76,8 +57,7 @@ NP {
 			sound: sound,
 			notes: notes,
       amps: amps,
-      structure: structure,
-			durmul: durmul,
+      struct: struct,
 			cycle: -1,
 		);
 
@@ -86,16 +66,12 @@ NP {
 			10, // should be parameter?
 			Penvir(envir, Pbind(
 
-				// generate a new dur pattern per cycle
-				// (there may be alternating steps)
-        // \dur MUST be calculated FIRST because it sets the new value
-        // for ~cycle in the environment for the Pbind.
         // Following Plazy constructs depend on the ~cycle value
-        //
-				\dur, Pn(Plazy({ |ev|
-					~cycle = ~cycle + 1;
-					Pseq(~structure.durs(~cycle) * ~durmul, 1);
-				})),
+        \cycle, Pn(Plazy({ |ev| ~cycle = ~cycle + 1; })),
+
+				// generate a new dur pattern per cycle
+				// there may be alternating steps, fast/slow steps
+				\dur, Pn(Plazy({ |ev| Pseq(~struct.durs(~cycle)); })),
 
 				\amp, Pn(Plazy({ |ev|
           var amps = [ amp ];
@@ -106,21 +82,14 @@ NP {
 					Pseq(amps).asFloat.clip(0.0, 1.0);
 				})),
 
-				//\group, NPSamples.groups[\src], // should be parameter?
-
-				\samplename, Pn(Plazy({ |ev|
-					Pseq(~sound.names(~cycle));
-				})),
+				\samplename, Pn(Plazy({ |ev| Pseq(~sound.names(~cycle)); })),
 
 				\samplenumber, Pn(Plazy({ |ev|
-					var numbers = ~sound.numbers(~cycle);
+					var notes = ~sound.notes(~cycle);
 
-					// notes will overrule numbers
-					if(~notes.notNil, {
-						numbers = ~notes.names(~cycle);
-					});
+					if(~notes.notNil, { notes = ~notes.names(~cycle); });
 
-					Pseq(numbers).asInteger;
+					Pseq(notes).asInteger;
 				})),
 
         // the "~" name denotes a Rest to be played

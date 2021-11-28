@@ -131,4 +131,7 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in 
 
 ```bd(3,8)``` euclidian rhythms ( bd:2(3,8) is also possible )
 
+## Latest developments
+
+20211128: parsing */@ works, now use it during play..
 
