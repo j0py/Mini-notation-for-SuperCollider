@@ -66,12 +66,13 @@ NP {
 			10, // should be parameter?
 			Penvir(envir, Pbind(
 
-        // Following Plazy constructs depend on the ~cycle value
-        \cycle, Pn(Plazy({ |ev| ~cycle = ~cycle + 1; })),
-
-				// generate a new dur pattern per cycle
+        // calc cycle number (and store in envir for Plazy's)
+				// generate a new dur pattern for the cycle
 				// there may be alternating steps, fast/slow steps
-				\dur, Pn(Plazy({ |ev| Pseq(~struct.durs(~cycle)); })),
+				\dur, Pn(Plazy({ |ev| 
+            ~cycle = ~cycle + 1;
+            Pseq(~struct.durs(~cycle));
+        })),
 
 				\amp, Pn(Plazy({ |ev|
           var amps = [ amp ];
