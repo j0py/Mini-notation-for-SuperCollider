@@ -26,7 +26,7 @@ NP {
 	snd_ { |val| struct = nil; ^this.snd(val); }
 
 	num { |val| 
-    notes = NPParser.new.parse(val); 
+    notes = NPParser.new.parse(val).post; 
     if(struct.isNil, { struct = notes; });
     ^this;
   }
@@ -76,62 +76,64 @@ NP {
 				\amp, Pn(Plazy({ |ev|
           var amps = [ amp ];
 
-					// amps will overrule
+					// amps will override
 					if(~amps.notNil, { amps = ~amps.names(~cycle) });
 
 					Pseq(amps).asFloat.clip(0.0, 1.0);
 				})),
 
-				\samplename, Pn(Plazy({ |ev| Pseq(~sound.names(~cycle)); })),
+				\soundname, Pn(Plazy({ |ev| Pseq(~sound.names(~cycle)); })),
 
-				\samplenumber, Pn(Plazy({ |ev|
+				\notename, Pn(Plazy({ |ev|
 					var notes = ~sound.notes(~cycle);
 
 					if(~notes.notNil, { notes = ~notes.names(~cycle); });
 
-					Pseq(notes).asInteger;
+					Pseq(notes); // strings!
 				})),
 
         // the "~" name denotes a Rest to be played
 				\type, Pfunc({ |ev|
-					if(ev.samplename == "~", \rest, \note);
+          case
+          { ev.soundname == "~" } { \rest }
+          { ev.notename == "~" } { \rest }
+          { \note };
 				}),
 
 				\instrument, Pfunc({ |ev|
-          if(ev.samplename == "~", \default, {
-            var sample = NPSamples.samples
-					  .at(ev.samplename.asSymbol);
+          var sample, sound, note;
 
-					  if(sample.notNil,
-						  \np_playbuf,
-						  ev.samplename.asSymbol
-					  );
-          });
-				}),
+          ev.bufnum = 0;
+          ev.midinote = 0;
+          note = ev.notename.asInteger;
+          sound = ev.soundname.asSymbol;
+          sample = NPSamples.samples.atFail(sound, nil);
 
-				\midinote, Pfunc({ |ev|
-					if(ev.samplenumber < 20, {
-						ev.samplenumber + 60;
-					}, ev.samplenumber);
-				}),
+          case
+          { ev.type == \rest } { \default }
 
-				\bufnum, Pfunc({ |ev|
-          if(ev.samplename == "~", 0, {
-					  var sample = NPSamples.samples
-					  .at(ev.samplename.asSymbol);
+          { sample.notNil }
+          { 
+            ev.bufnum = sample.wrapAt(note).bufnum;
+            \np_playbuf;
+          }
 
-					  if(sample.notNil, {
-						  sample.wrapAt(ev.samplenumber).bufnum;
-					  }, 0);
-          });
+          {
+            if(note < 20, { note = note + 60 }); // degree
+            ev.midinote = note;
+            // if the synthdef has extra controls, they do not appear
+            // in the proxymixer "ed" screen. why?
+            // instead of a synthdef, we maybe should always use a function?
+            sound;
+          }
 				}),
 
         // debugging
 				\trace, Pfunc({|ev|
 					~cycle.asString 
           + ev.dur.asString 
-          + ev.samplename 
-          + ev.samplenumber.asString
+          + ev.soundname 
+          + ev.notename.asString
           + ev.bufnum.asString;
 				}),
 			).trace(\trace))

@@ -21,7 +21,7 @@ NPParser : NPParserNode {
 
       if(" []<>".contains(ch.asString), {
         if(name.size > 0, { node.name_(name.asString); });
-        if(note.size > 0, { node.note_(note.asInteger); });
+        if(note.size > 0, { node.note_(note.asString); });
         if(fast.size > 0, { node.muldur(fast.asFloat.reciprocal); });
         if(slow.size > 0, { node.muldur(slow.asFloat); });
         if(mul.size > 0, { node.muldur(mul.asFloat); });
@@ -142,7 +142,7 @@ NPParserNode {
       "% % % %", 
       this.class.name, 
       name.asString, 
-      (note ? 0).asInteger, 
+      (note ? 0).asString, 
       durmul.asFloat
     );
   }

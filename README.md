@@ -134,4 +134,5 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in 
 ## Latest developments
 
 20211128: parsing */@ works, now use it during play..
+20211201: ~ in notes is also a \rest; shortened Pbind; problem discovered
 
