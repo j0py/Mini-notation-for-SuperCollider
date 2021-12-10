@@ -133,6 +133,20 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. "92" in 
 
 ## Latest developments
 
-20211128: parsing */@ works, now use it during play..
+20211128: parsing */@ works, now only have use it during play..
 20211201: ~ in notes is also a \rest; shortened Pbind; problem solved
+20211210: using pbindf, add any other param for your synthdef:
+
+```
+(
+NP(~rhythm)
+.num("2 0 [1 5] <8 ~ [5 4] 2>")
+.snd("guitarbody")
+.param(\amp, "0.3 0.2 1 0.3 0.6")
+.param(\pan, "-1 0 0 0 1")
+.param(\spread, "0")
+.play(0.3)
+.mon(0.5);
+)
+```
 

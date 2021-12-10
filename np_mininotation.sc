@@ -19,58 +19,58 @@ NPParser : NPParserNode {
 			var ch = str.at(index);
 			index = index + 1;
 
-      if(" []<>".contains(ch.asString), {
-        if(name.size > 0, { node.name_(name.asString); });
-        if(note.size > 0, { node.note_(note.asString); });
-        if(fast.size > 0, { node.muldur(fast.asFloat.reciprocal); });
-        if(slow.size > 0, { node.muldur(slow.asFloat); });
-        if(mul.size > 0, { node.muldur(mul.asFloat); });
+			if(" []<>".contains(ch.asString), {
+				if(name.size > 0, { node.name_(name.asString); });
+				if(note.size > 0, { node.note_(note.asString); });
+				if(fast.size > 0, { node.muldur(fast.asFloat.reciprocal); });
+				if(slow.size > 0, { node.muldur(slow.asFloat); });
+				if(mul.size > 0, { node.muldur(mul.asFloat); });
 
-        node = nil;
-        name = "";
-        note = "";
-        fast = "";
-        slow = "";
-        mul = "";
-        parsing = "name";
-      });
+				node = nil;
+				name = "";
+				note = "";
+				fast = "";
+				slow = "";
+				mul = "";
+				parsing = "name";
+			});
 
 			case
 			{ ch == $[  } {
-        node = NPNestingNode.new;
+				node = NPNestingNode.new;
 				this.parseNodes(node);
 				currentNode.addChild(node);
 			}
 			{ ch == $]  } { ^this }
 
 			{ ch == $< } {
-        node = NPAlternatingNode.new;
+				node = NPAlternatingNode.new;
 				this.parseNodes(node);
 				currentNode.addChild(node);
 			}
 			{ ch == $> } { ^this }
 
-      { ch == $: } { parsing = "note"; }
-      { ch == $* } { parsing = "fast"; }
-      { ch == $/ } { parsing = "slow"; }
-      { ch == $@ } { parsing = "mul"; }
+			{ ch == $: } { parsing = "note"; }
+			{ ch == $* } { parsing = "fast"; }
+			{ ch == $/ } { parsing = "slow"; }
+			{ ch == $@ } { parsing = "mul"; }
 
 			{
-				if(parsing == "name", { 
-          if(ch != $ , {
-            name = name ++ ch.asString;
+				if(parsing == "name", {
+					if(ch != $ , {
+						name = name ++ ch.asString;
 
-            if(node.isNil, { 
-              node = NPValueNode.new;
-              currentNode.addChild(node);
-            }, {
-              if(node.is_valuenode.not, {
-                node = NPValueNode.new;
-                currentNode.addChild(node);
-              });
-            });
-          });
-        });
+						if(node.isNil, {
+							node = NPValueNode.new;
+							currentNode.addChild(node);
+						}, {
+							if(node.is_valuenode.not, {
+								node = NPValueNode.new;
+								currentNode.addChild(node);
+							});
+						});
+					});
+				});
 
 				if(parsing == "note", { note = note ++ ch.asString; });
 				if(parsing == "fast", { fast = fast ++ ch.asString; });
@@ -82,14 +82,14 @@ NPParser : NPParserNode {
 		^this; // you are the root node of the tree, so return yourself
 	}
 
-  make_events { |cycle|
-    last_cycle = last_cycle ? -1;
-    if(last_cycle < cycle, { 
-      last_cycle = cycle;
-      events = super.get_events(cycle, 1);
-    });
-    ^events;
-  }
+	make_events { |cycle|
+		last_cycle = last_cycle ? -1;
+		if(last_cycle < cycle, {
+			last_cycle = cycle;
+			events = super.get_events(cycle, 1);
+		});
+		^events;
+	}
 
 	durs { |cycle| ^this.make_events(cycle).collect({ |ev| ev[0] }) }
 
@@ -116,38 +116,38 @@ NPParserNode {
 		children.add(node);
 	}
 
-  muldur { |factor| durmul = durmul * factor; ^this; }
+	muldur { |factor| durmul = durmul * factor; ^this; }
 
-  // @return List[[dur, name, note],[dur, name, note],..]
-  get_events { |cycle, dur|
-    var d, events = List.new;
-    d = dur / children.size;
-    children.do({ |node| events.addAll(node.get_events(cycle, d)); });
+	// @return List[[dur, name, note],[dur, name, note],..]
+	get_events { |cycle, dur|
+		var d, events = List.new;
+		d = dur / children.size;
+		children.do({ |node| events.addAll(node.get_events(cycle, d)); });
 
-    // TODO: put events durmul times inside dur beats 
+		// TODO: put events durmul times inside dur beats
 
-    ^events;
-  }
+		^events;
+	}
 
 	post { |indent=""|
 		(indent ++ this.log).postln;
 
 		children.do({ |node| node.post(indent ++ "--") });
 
-    ^this;
+		^this;
 	}
 
-	log { 
-    ^format(
-      "% % % %", 
-      this.class.name, 
-      name.asString, 
-      (note ? 0).asString, 
-      durmul.asFloat
-    );
-  }
+	log {
+		^format(
+			"% % % %",
+			this.class.name,
+			name.asString,
+			(note ? 0).asString,
+			durmul.asFloat
+		);
+	}
 
-  is_valuenode { ^false; }
+	is_valuenode { ^false; }
 }
 
 // support for a value step (format: <name>[:<note>][*<fast>][/<slow>])
@@ -156,9 +156,9 @@ NPParserNode {
 // names: ["bd", "hh", "cl", "sn"]
 // notes: [2, 3, 0, 6]
 NPValueNode : NPParserNode {
-  get_events { |cycle, dur| ^[[dur, name, note ? 0]] }
+	get_events { |cycle, dur| ^[[dur, name, note ? 0]] }
 
-  is_valuenode { ^true; }
+	is_valuenode { ^true; }
 }
 
 // support for nested lists using "[" and "]":

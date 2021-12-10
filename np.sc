@@ -3,153 +3,153 @@
 // example: NP(~a).snd("bd bd hh sn").play(0.8).mon(0.5)
 //
 NP {
-	var proxy, <sound, <notes, <amps, <struct, <index;
+	var proxy, <sound, <notes, <struct, params, <index;
 
 	*new { |a_proxy, index=10| ^super.new.init(a_proxy, index); }
 
 	init { |a_proxy, a_index|
 		proxy = a_proxy;
-    index = a_index;
+		index = a_index;
+		params = IdentityDictionary.new(0);
 
-    if(proxy.source.isNil, {
-        // create a silent proxy, where things can be added on the slots
-		    proxy.ar(2);
-		    proxy.source_({ Silent.ar!2 });
+		SynthDef(\np_playbuf, {
+			arg out=0, bufnum, amp=1, pan=0, spread=1;
+			var sig;
+			sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum), doneAction: 2);
+			sig = Splay.ar(sig, spread, amp, pan);
+			Out.ar(out, sig);
+		}).add;
 
-        // you should prime the proxy with the desired synthdef
-        // so that you will have controls for synthdef parameters
-        // that are not set through patterns. snd() should do that.
-    });
+		SynthDef(\np_silent, {
+			arg out=0;
+			var sig = Silent.ar!2;
+			Out.ar(out, sig);
+		}).add;
+
+		if(proxy.source.isNil, {
+			// create a silent proxy, where things can be added on the slots
+			proxy.ar(2);
+			proxy.source_({ Silent.ar!2 });
+		});
 
 		^this;
 	}
 
-	snd { |val| 
-    sound = NPParser.new.parse(val).post; 
-    if(struct.isNil, { struct = sound; });
-    ^this;
-  }
+	snd { |val|
+		sound = NPParser.new.parse(val).post;
+		if(struct.isNil, { struct = sound; });
+		^this;
+	}
 
 	snd_ { |val| struct = nil; ^this.snd(val); }
 
-	num { |val| 
-    notes = NPParser.new.parse(val).post; 
-    if(struct.isNil, { struct = notes; });
-    ^this;
-  }
+	num { |val|
+		notes = NPParser.new.parse(val).post;
+		if(struct.isNil, { struct = notes; });
+		^this;
+	}
 
 	num_ { |val| struct = nil; ^this.num(val); }
 
-	amp { |val| 
-    amps = NPParser.new.parse(val); 
-    if(struct.isNil, { struct = amps; });
-    ^this;
-  }
+	// set values for arbitrary parameter
+	param { |name, val|
+		params.put(name.asSymbol, NPParser.new.parse(val));
+		if(struct.isNil, { struct = params.at(name.asSymbol); });
+		^this;
+	}
 
-	amp_ { |val| struct = nil; ^this.amp(val); }
+	param_ { |name, val| struct = nil; ^this.param(name, val); }
 
 	// plays the NodeProxy.
-  // @param vol: volume for the monitor
+	// @param vol: volume for the monitor
 	mon { |vol=0|
 		proxy.play(vol: vol.asFloat.clip(0.0, 1.0));
 		^this;
 	}
 
-  // adds a Pbind that will play on the NodeProxy private bus
-  // @param amp: volume (0.0 - 1.0) for the Pbind
+	// adds a Pbind that will play on the NodeProxy private bus
+	// @param amp: volume (0.0 - 1.0) for the Pbind
 	play { |amp|
 
-		var envir = (np: this, cycle: -1); // environment for pbind
+		var envir = (np: this, cycle: -1);
 
-    // add Pbind to the NodeProxy
-		proxy.put(
-			index,
-			Penvir(envir, Pbind(
+		var pb = Pbind(
+			// calc cycle number (and store in envir for Plazy's)
+			// generate a new dur pattern for the cycle
+			// there may be alternating steps, fast/slow steps
+			\dur, Pn(Plazy({ |ev|
+				~cycle = ~cycle + 1;
+				Pseq(~np.struct.durs(~cycle));
+			})),
 
-        // calc cycle number (and store in envir for Plazy's)
-				// generate a new dur pattern for the cycle
-				// there may be alternating steps, fast/slow steps
-				\dur, Pn(Plazy({ |ev| 
-            ~cycle = ~cycle + 1;
-            Pseq(~np.struct.durs(~cycle));
-        })),
+			\amp, amp,
 
-				\amp, Pn(Plazy({ |ev|
-          var amps = [ amp ];
+			\soundname, Pn(Plazy({ |ev| Pseq(~np.sound.names(~cycle)); })),
 
-					// amps will override
-					if(~np.amps.notNil, { amps = ~np.amps.names(~cycle) });
+			\notename, Pn(Plazy({ |ev|
+				var notes = ~np.sound.notes(~cycle);
 
-					Pseq(amps).asFloat.clip(0.0, 1.0);
-				})),
+				if(~np.notes.notNil, { notes = ~np.notes.names(~cycle); });
 
-				\soundname, Pn(Plazy({ |ev| Pseq(~np.sound.names(~cycle)); })),
+				Pseq(notes); // strings!
+			})),
 
-				\notename, Pn(Plazy({ |ev|
-					var notes = ~np.sound.notes(~cycle);
+			// the "~" name denotes a Rest to be played
+			\type, Pfunc({ |ev|
+				case
+				{ ev.soundname == "~" } { \rest }
+				{ ev.notename == "~" } { \rest }
+				{ \note };
+			}),
 
-					if(~np.notes.notNil, { notes = ~np.notes.names(~cycle); });
+			\instrument, Pfunc({ |ev|
+				var sample, sound, note;
 
-					Pseq(notes); // strings!
-				})),
+				ev.bufnum = 0;
+				ev.midinote = 0;
+				note = ev.notename.asInteger;
+				sound = ev.soundname.asSymbol;
+				sample = Samples.samples.atFail(sound, nil);
 
-        // the "~" name denotes a Rest to be played
-				\type, Pfunc({ |ev|
-          case
-          { ev.soundname == "~" } { \rest }
-          { ev.notename == "~" } { \rest }
-          { \note };
-				}),
+				case
+				{ ev.type == \rest } { sound = \np_silent; }
 
-				\instrument, Pfunc({ |ev|
-          var sample, sound, note;
+				{ sample.notNil }
+				{
+					ev.bufnum = sample.wrapAt(note).bufnum;
+					sound = \np_playbuf;
+				}
 
-          ev.bufnum = 0;
-          ev.midinote = 0;
-          note = ev.notename.asInteger;
-          sound = ev.soundname.asSymbol;
-          sample = NPSamples.samples.atFail(sound, nil);
+				{
+					if(note < 20, { note = note + 60 }); // degree
+					ev.midinote = note;
+				};
 
-          case
-          { ev.type == \rest } { sound = \default }
-
-          { sample.notNil }
-          { 
-            ev.bufnum = sample.wrapAt(note).bufnum;
-            sound = \np_playbuf;
-          }
-
-          {
-            if(note < 20, { note = note + 60 }); // degree
-            ev.midinote = note;
-          }
-
-          sound; // the synthdef for the next event
-				}),
-
-        // debugging
-				\trace, Pfunc({|ev|
-					~cycle.asString 
-          + ev.dur.asString 
-          + ev.soundname 
-          + ev.notename.asString
-          + ev.bufnum.asString;
-				}),
-
-        // problem:
-        // to get the synthdef controls in a gui, we must prime the
-        // nodeproxy with the synthdef name (and we must alter nodeMap
-        // for every event). But is you prime a nodeProxy, all slots are
-        // cleared, and so this Pbind will be gone.
-        // I think we can prime the nodeProxy one time only, and so the
-        // nodeProxy can play samples, or just one synthdef.
-
-        // wrapForNodeProxy.sc: nodeMap values (gui!) override event values
-        // \dummy, Pfunc({ |ev| a.nodeMap.set(\pos, ev.pos); }),
-        // loop them using SynthDesc.controlNames
-
-			).trace(\trace))
+				sound;
+			}),
 		);
+
+		params.keysValuesDo({ |key, val|
+			// maybe block keys like 'dur', 'out', 'i_out'
+			pb = Pbindf(
+				pb,
+				key.asSymbol,
+				Pn(Plazy({ |ev|
+					Pseq(val.names(~cycle)).asFloat;
+				}))
+			);
+		});
+
+		pb = Pbindf(
+			pb,
+			\trace,
+			Pfunc({|ev|	~cycle.asString + ev })
+		).trace(\trace);
+
+		// add Pbind to the NodeProxy
+		proxy.put(index, Penvir(envir, pb));
+
+		// wrapForNodeProxy.sc: nodeMap values (gui!) override event values
 
 		^this;
 	}
