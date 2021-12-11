@@ -43,7 +43,7 @@ The ```mon()``` method will call ```play``` on the NodeProxy, and the parameter 
 
 The mininotation parser supports nested steps using ```[ ]``` and alternating steps using ```< >```, supplying numbers (notes) with a colon ```bd:3``` and more. At the bottom of this README i keep track of what has been realized when.
 
-The snd() method specifies what sound is played (sample or synthdef), and it may also specify the numbers (sample number or midinote number).  
+The snd() method specifies what sound is played (sample or synthdef), and it may also specify the numbers (sample number or midinote number).
 But you can also use the num() method to specify the numbers separately.
 
 The param() method lets you specify values for any other parameter for the played synthdef (np_playbuf or one of your own synthdefs).
@@ -64,7 +64,7 @@ Then i go inside the ```~/.local/share/SuperCollider/Extensions``` folder, and i
 
 Then start SuperCollider, recompile the classes and the NP class should be available. It appears to be that SuperCollider will follow symbolic links.
 
-The NP class uses the Samples class to play samples.  
+The NP class uses the Samples class to find samples to play.  
 Before using the NP class, you should call ```Samples.load(<path>, <ext>)``` to load your samples. You specify the ```<path>``` relative to the file where the code that you run is in. With ```<ext>``` you can let Samples find all ".wav" or ".aiff" files. But not both at the same time, yet.
 
 One thing i need to do is give the NP class proper documentation so that SuperCollider will display the documentation in its class browser. Will figure that out.
