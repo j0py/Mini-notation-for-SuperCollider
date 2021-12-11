@@ -69,7 +69,7 @@ Before using the NP class, you should call ```Samples.load(<path>, <ext>)``` to 
 
 One thing i need to do is give the NP class proper documentation so that SuperCollider will display the documentation in its class browser. Will figure that out.
 
-## Small example
+## An example
 
 Create a ```.scd``` file with this code in it:  
 (i assume a "samples" folder with "bd", "sn" etc subfolders with samples)
@@ -90,7 +90,7 @@ p.clock.tempo_(60/60)
 
 Load it in SuperCollider and evaluate.
 
-## Example setting the structure and using amps
+## Example setting the structure and using param
 
 ```
 s.boot;
@@ -135,7 +135,7 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. ```"92"`
 ## Latest developments
 
 20211128: parsing */@ works (stretching), now only have use it during play..  
-20211201: ~ in notes is also a \rest; shortened Pbind; 
+20211201: ~ in notes is also a \rest; shortened Pbind;  
 20211210: using pbindf, add any other param for your synthdef:  
 
 ```
