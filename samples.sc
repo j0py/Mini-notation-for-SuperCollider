@@ -8,12 +8,13 @@ Samples {
     if(samples.notNil, { ^this; });
 
     s.waitForBoot({
-      var base;
+      //var base;
 
       samples = Dictionary.new;
 
-      base = PathName(this.class.filenameSymbol.asString).pathOnly;
-      path = base ++ path.asString +/+ "*";
+      path = path.resolveRelative +/+ "*";
+      //base = PathName(this.class.filenameSymbol.asString).pathOnly;
+      //path = base ++ path.asString +/+ "*";
       path.postln.pathMatch.do({|sub|
         samples.put(
           sub.basename
