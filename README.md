@@ -149,4 +149,5 @@ NP(~rhythm)
 .mon(0.5);
 )
 ```
+20211211: the */@ (stretching) works for value steps now
 

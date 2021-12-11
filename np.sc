@@ -130,7 +130,7 @@ NP {
 		);
 
 		params.keysValuesDo({ |key, val|
-			// maybe block keys like 'dur', 'out', 'i_out'
+			// maybe skip special keys like 'dur', 'out', 'i_out', 'fadeTime'
 			pb = Pbindf(
 				pb,
 				key.asSymbol,

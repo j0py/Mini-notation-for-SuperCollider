@@ -100,7 +100,7 @@ NPParser : NPParserNode {
 
 // abstract superclass for all nodes
 NPParserNode {
-	var <>parent, <children, <>prev, <>next, <>name, <>note, <>durmul=1.0;
+	var <>parent, <children, <>prev, <>next, <>name, <>note, <>stretch=1.0;
 
 	*new { ^super.new.initNPParserNode; }
 
@@ -116,7 +116,7 @@ NPParserNode {
 		children.add(node);
 	}
 
-	muldur { |factor| durmul = durmul * factor; ^this; }
+	muldur { |factor| stretch = stretch * factor; ^this; }
 
 	// @return List[[dur, name, note],[dur, name, note],..]
 	get_events { |cycle, dur|
@@ -124,7 +124,7 @@ NPParserNode {
 		d = dur / children.size;
 		children.do({ |node| events.addAll(node.get_events(cycle, d)); });
 
-		// TODO: put events durmul times inside dur beats
+		// TODO: put events stretch times inside dur beats
 
 		^events;
 	}
@@ -143,7 +143,7 @@ NPParserNode {
 			this.class.name,
 			name.asString,
 			(note ? 0).asString,
-			durmul.asFloat
+			stretch.asFloat
 		);
 	}
 
@@ -156,7 +156,76 @@ NPParserNode {
 // names: ["bd", "hh", "cl", "sn"]
 // notes: [2, 3, 0, 6]
 NPValueNode : NPParserNode {
-	get_events { |cycle, dur| ^[[dur, name, note ? 0]] }
+
+/*
+usecases
+----------------------------------------------------------------------
+dur    = 1/4
+stretch = 1.5 (stretch a little)
+
+cycle   0            1           2          3            etc
+events  1/4, sound   1/8, rest   1/4, rest  (same as 0)
+                     1/8, sound
+remain  1/8, rest    1/4, rest   -
+----------------------------------------------------------------------
+dur    = 1/4
+stretch = 2.5 (stretch a lot)
+
+cycle   0            1           2           3          4          etc
+events  1/4, sound   1/4, rest   1/8, rest   1/4, rest  1/4, rest
+                                 1/8, sound
+remain  3/8, rest    1/8, rest   2/4, rest   1/4, rest  -
+----------------------------------------------------------------------
+dur    = 1/4
+stretch = 0.75 (speed up)
+
+cycle   0            1            2            etc
+events  3/16, sound  2/16, rest   1/16, rest  
+        1/16, sound  2/16, sound  3/16, sound
+remain  2/16, rest   1/16, rest   -
+----------------------------------------------------------------------
+*/
+  var remain = 0;
+
+  get_events { |cycle, dur|
+    var result = List.new;
+    var duration = dur;
+
+    while
+    { duration > 0 }
+    {
+      if(remain > 0, {
+        if(duration >= remain, {
+          result.add([remain, "~", "~"]);
+          duration = duration - remain;
+          if(duration < 0.0001, { duration = 0; });
+          remain = 0;
+        }, {
+          result.add([duration, "~", "~"]);
+          remain = remain - duration;
+          if(remain < 0.0001, { remain = 0; });
+          duration = 0;
+        });
+      }, {
+        var needed = dur * stretch;
+
+        if(duration >= needed, {
+          result.add([needed, name, note ? 0]);
+          duration = duration - needed;
+          if(duration < 0.0001, { duration = 0; });
+        }, {
+          result.add([duration, name, note ? 0]);
+          remain = needed - duration;
+          if(remain < 0.0001, { remain = 0; });
+          duration = 0;
+        });
+      });
+    };
+
+    ^result;
+  }
+
+	//get_events { |cycle, dur| ^[[dur, name, note ? 0]] }
 
 	is_valuenode { ^true; }
 }

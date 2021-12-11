@@ -14,7 +14,7 @@ Samples {
 
       base = PathName(this.class.filenameSymbol.asString).pathOnly;
       path = base ++ path.asString +/+ "*";
-      path.pathMatch.do({|sub|
+      path.postln.pathMatch.do({|sub|
         samples.put(
           sub.basename
           .withoutTrailingSlash.asSymbol,
