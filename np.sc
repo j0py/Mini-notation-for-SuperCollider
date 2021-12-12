@@ -109,7 +109,7 @@ NP {
 				ev.midinote = 0;
 				note = ev.notename.asInteger;
 				sound = ev.soundname.asSymbol;
-				sample = Samples.samples.atFail(sound, nil);
+				sample = Samples.atFail(sound, nil);
 
 				case
 				{ ev.type == \rest } { sound = \np_silent; }

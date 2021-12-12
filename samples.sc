@@ -5,17 +5,11 @@ Samples {
 
     var s = Server.default;
 
-    if(samples.notNil, { ^this; });
+    samples = samples ? Dictionary.new;
 
     s.waitForBoot({
-      //var base;
-
-      samples = Dictionary.new;
-
-      path = path.resolveRelative +/+ "*";
-      //base = PathName(this.class.filenameSymbol.asString).pathOnly;
-      //path = base ++ path.asString +/+ "*";
-      path.postln.pathMatch.do({|sub|
+      (path.resolveRelative +/+ "*")
+      .pathMatch.do({|sub|
         samples.put(
           sub.basename
           .withoutTrailingSlash.asSymbol,
@@ -31,4 +25,8 @@ Samples {
       ("Samples" + samples.keys).postln;
     });
   }
+
+  *at { |key| ^samples.at(key.asSymbol) }
+
+  *atFail { |key, default| ^samples.atFail(key.asSymbol, default) }
 }
