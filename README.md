@@ -98,7 +98,9 @@ Use ```git clone``` to get the sources somewhere on disk.
 Create a symbolic link inside the ```~/.local/share/SuperCollider/Extensions``` folder, pointing to the place where you have cloned this repository to.
 Like this: ```ln -s somehwere-on-disk np```. In Extensions folder, you will now have a symbolic link named "np" pointing to the contents of the repository.
 
-Then start SuperCollider, recompile the classes and the NP class should be available. SuperCollider will follow the symbolic link.
+Start SuperCollider (this will recompile all classes) and the NP class should be available. SuperCollider will follow the symbolic link.
+
+This is how you can install it on Linux. Without using symbolic links, you can of course just copy all ```*.sc``` files of this repo into Extensions directly.
 
 ## Example
 
