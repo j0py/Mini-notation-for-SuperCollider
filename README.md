@@ -57,18 +57,27 @@ NP(~a).snd("bd:5 hh cl sn").num("2 1 1 7").play(0.7).mon(0.5);
 For the first step, "bd" sample number 2 will be played (5 is ignored).
 
 In NP, each method has two versions: one regular, and one postfixed with an ```_``` character.   
-The rule will is that the _first_ method call that takes a specification will determine the structure for the Pbind, but the _last_ method call ```xxx_``` method that takes a specification will override that.
+The rule is that the _first_ method call that takes a specification will determine the structure for the Pbind, but the _last_ method call ```xxx_``` method that takes a specification will override that.
 
-The param() method lets you specify values for any other parameter for the played synthdef (np_playbuf or one of your own synthdefs). This method call could also be the one that determines the structure.
+The ```param()``` method lets you specify values for any other parameter for the played synthdef (np_playbuf or one of your own synthdefs). This method call could also be the one that determines the structure.
 
 ```
 NP(~a).snd("bd:5 hh:1 cl:2 sn:7").param_(\amp, "0.2 1 0.7").play(0.7).mon(0.5);
 ```
 This would play accents with a triplet feel, while the 4 sample steps wrap around.
 
+## Rests
+
+As in Tidal, the ```"~"``` string denotes a rest. You can use this string inside the ```snd()``` or ```num()``` specification to create a rest.
+
 ## Nesting, alternating
 
 NP supports nested steps using ```[ ]``` and alternating steps using ```< >```.
+
+```
+NP(~a).snd("bd <sn:2 [sn:4 bd:2]> ~").play(0.5).mon(0.3);
+```
+Snaredrum 2 is alternated with a snaredum 4/bassdrum 2 group (playing in double tempo).
 
 ## Play()
 
@@ -82,13 +91,14 @@ The default slot index where the Pbind is added is slot 10, but you may specify 
 
 The ```mon()``` method will call ```play``` on the NodeProxy, and the parameter to ```mon()``` is the monitor volume to use. You could also play the NodeProxy directly, instead of through the NP class (```~a.vol_(0.5).play```).
 
-## Using it in SuperCollider
+## Installation
 
-I use ```git clone``` to get the sources somewhere on my disk.
+Use ```git clone``` to get the sources somewhere on disk.
 
-Then i go inside the ```~/.local/share/SuperCollider/Extensions``` folder, and i place there a _symbolic link_ to the folder where the sources are. Like this: ```ln -s ~/repos/Tidal-syntax-for-SClang np```.
+Create a symbolic link inside the ```~/.local/share/SuperCollider/Extensions``` folder, pointing to the place where you have cloned this repository to.
+Like this: ```ln -s repository np```. In Extensions folder, you will now have a symbolic link named "np" pointing to the contents of the repository.
 
-Then start SuperCollider, recompile the classes and the NP class should be available. It appears to be that SuperCollider will follow symbolic links.
+Then start SuperCollider, recompile the classes and the NP class should be available. SuperCollider will follow the symbolic link.
 
 ## Example
 
@@ -127,21 +137,21 @@ NP(~b).snd("~ ~ hh hh").param_(\amp, "0.2 0.8 0.2").play(0.5).mon(0.4);
 NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
 ```
 
-## More ideas
+## Future plans
 
 ```bin("10001010")```
 
-```bin``` could be used to declare the structure, thereby overriding all other structure defining method calls.
+```bin()``` could be used to declare a structure, thereby overriding all other structure defining method calls.
 
 ```hex("92")```
 
-Just like ```bin``` you can think of much shorter hexadecimal notation. ```"92"``` in hex equals binary ```"10010010"```.
+Just like ```bin()``` you can think of much shorter hexadecimal notation. ```"92"``` in hex equals binary ```"10010010"```.
 
-## Work in progress:
+## Working on:
 
 ```,``` paralell running steps
 
-```!``` repeats the last step, e.g.: ```"bd bd bd" = "bd bd !" = "bd!3"```
+```!``` repeat the last step, e.g.: ```"bd bd bd" = "bd bd !" = "bd!3"```
 
 ```*``` ```"bd sn*2" = "bd [sn sn]"``` plays 2 snares in same step, so speeds up
 
@@ -152,6 +162,8 @@ Just like ```bin``` you can think of much shorter hexadecimal notation. ```"92"`
 ```@``` ```[bd sn@0.5]``` makes duration of the snare half as long
 
 ```bd(3,8)``` euclidian rhythms ( ```bd:2(3,8)``` is also possible )
+
+## Progress:
 
 20211128: parsing ```*/@``` works (stretching)  
 20211201: ~ in notes is also a \rest; shortened Pbind;  
@@ -175,6 +187,6 @@ NP(~rhythm)
 ```
 NP(~a).snd("bd <~ [~ bd:2/1.5]> ~ ~ sn*3/2 ~ ~ ~").play(0.5).mon(0.3);
 ```
-next is to make stretching wotk for ```[]``` and ```<>``` too.
+next is to make stretching work for ```[]``` and ```<>``` too.
 
 
