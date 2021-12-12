@@ -96,7 +96,7 @@ The ```mon()``` method will call ```play``` on the NodeProxy, and the parameter 
 Use ```git clone``` to get the sources somewhere on disk.
 
 Create a symbolic link inside the ```~/.local/share/SuperCollider/Extensions``` folder, pointing to the place where you have cloned this repository to.
-Like this: ```ln -s repository np```. In Extensions folder, you will now have a symbolic link named "np" pointing to the contents of the repository.
+Like this: ```ln -s somehwere-on-disk np```. In Extensions folder, you will now have a symbolic link named "np" pointing to the contents of the repository.
 
 Then start SuperCollider, recompile the classes and the NP class should be available. SuperCollider will follow the symbolic link.
 
