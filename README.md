@@ -1,4 +1,4 @@
-# Tidal-syntax-for-SClang
+# Tidal-syntax-for-SuperCollider
 Use Tidal syntax to play with NodeProxy objects.
 
 ## The idea
