@@ -6,7 +6,7 @@
 // "walk" through the tree structure to extract a flat list of durations,
 // names, notes, etc. The NPParser object has the methods for that.
 
-NPParser : NPParserNode {
+NPParser : NPNestingNode {
 	var index = 0, str, last_cycle, events;
 
 	parse { |input| str = input.asString ++ " "; ^this.parseNodes(this) }
@@ -101,10 +101,15 @@ NPParser : NPParserNode {
 // abstract superclass for all nodes
 NPParserNode {
 	var <>parent, <children, <>prev, <>next, <>name, <>note, <>stretch=1.0;
+	var remaining_events, remain = 0;
 
 	*new { ^super.new.initNPParserNode; }
 
-	initNPParserNode { children = List.new; ^this }
+	initNPParserNode {
+    children = List.new;
+    remaining_events = List.new;
+    ^this
+  }
 
 	addChild { |node|
 		node.parent_(this);
@@ -120,13 +125,49 @@ NPParserNode {
 
 	// @return List[[dur, name, note],[dur, name, note],..]
 	get_events { |cycle, dur|
-		var d, events = List.new;
-		d = dur / children.size;
-		children.do({ |node| events.addAll(node.get_events(cycle, d)); });
+		var result = List.new;
+		var duration = dur;
 
-		// TODO: put events stretch times inside dur beats
+		format("get_events(%, %)", cycle, dur).postln;
 
-		^events;
+		while
+		{ duration > 0 }
+		{
+			format("% %", duration, remaining_events.size).postln;
+
+			if(remain > 0, {
+				if(duration >= remain, {
+					result.add([remain, "~", "~"]);
+					duration = duration - remain;
+					if(duration < 0.0001, { duration = 0; });
+					remain = 0;
+				}, {
+					result.add([duration, "~", "~"]);
+					remain = remain - duration;
+					if(remain < 0.0001, { remain = 0; });
+					duration = 0;
+				});
+			}, {
+				if(remaining_events.size > 0, {
+					var event = remaining_events.removeAt(0);
+					if(event[0] > duration, {
+						result.add([duration, event[1], event[2]]);
+						remain = event[0] - duration;
+						if(remain < 0.0001, { remain = 0; });
+						duration = 0;
+					}, {
+						result.add(event);
+						duration = duration - event[0];
+						if(duration < 0.0001, { duration = 0; });
+					});
+				}, {
+					format("  get_events(%, %)", cycle, dur).postln;
+					remaining_events.addAll(this.get_new_events(cycle, dur));
+				});
+			});
+		};
+
+		^result;
 	}
 
 	post { |indent=""|
@@ -156,76 +197,11 @@ NPParserNode {
 // names: ["bd", "hh", "cl", "sn"]
 // notes: [2, 3, 0, 6]
 NPValueNode : NPParserNode {
-
-/*
-usecases
-----------------------------------------------------------------------
-dur    = 1/4
-stretch = 1.5 (stretch a little)
-
-cycle   0            1           2          3            etc
-events  1/4, sound   1/8, rest   1/4, rest  (same as 0)
-                     1/8, sound
-remain  1/8, rest    1/4, rest   -
-----------------------------------------------------------------------
-dur    = 1/4
-stretch = 2.5 (stretch a lot)
-
-cycle   0            1           2           3          4          etc
-events  1/4, sound   1/4, rest   1/8, rest   1/4, rest  1/4, rest
-                                 1/8, sound
-remain  3/8, rest    1/8, rest   2/4, rest   1/4, rest  -
-----------------------------------------------------------------------
-dur    = 1/4
-stretch = 0.75 (speed up)
-
-cycle   0            1            2            etc
-events  3/16, sound  2/16, rest   1/16, rest  
-        1/16, sound  2/16, sound  3/16, sound
-remain  2/16, rest   1/16, rest   -
-----------------------------------------------------------------------
-*/
-  var remain = 0;
-
-  get_events { |cycle, dur|
-    var result = List.new;
-    var duration = dur;
-
-    while
-    { duration > 0 }
-    {
-      if(remain > 0, {
-        if(duration >= remain, {
-          result.add([remain, "~", "~"]);
-          duration = duration - remain;
-          if(duration < 0.0001, { duration = 0; });
-          remain = 0;
-        }, {
-          result.add([duration, "~", "~"]);
-          remain = remain - duration;
-          if(remain < 0.0001, { remain = 0; });
-          duration = 0;
-        });
-      }, {
-        var needed = dur * stretch;
-
-        if(duration >= needed, {
-          result.add([needed, name, note ? 0]);
-          duration = duration - needed;
-          if(duration < 0.0001, { duration = 0; });
-        }, {
-          result.add([duration, name, note ? 0]);
-          remain = needed - duration;
-          if(remain < 0.0001, { remain = 0; });
-          duration = 0;
-        });
-      });
-    };
-
-    ^result;
-  }
-
-	//get_events { |cycle, dur| ^[[dur, name, note ? 0]] }
+	get_new_events { |cycle, dur|
+		var result = List.new;
+		result.add([dur * stretch, name, note ? 0]);
+		^result;
+	}
 
 	is_valuenode { ^true; }
 }
@@ -236,6 +212,16 @@ remain  2/16, rest   1/16, rest   -
 // names: ["bd", "hh", "hh", "cl", "sn"]
 // notes: [2, 3, 2, 0, 6]
 NPNestingNode : NPParserNode {
+	get_new_events { |cycle, dur|
+		var result, d = dur / children.size * stretch;
+
+		result = List.new;
+		children.do({ |node|
+			// we have to use same cycle number..
+			result.addAll(node.get_events(cycle, d));
+		});
+		^result;
+	}
 }
 
 // support for alternating steps using "<" and ">" (round-robin)
@@ -245,8 +231,8 @@ NPNestingNode : NPParserNode {
 // numbers: [2, 3, 0, 6] for cycle 0, 2, 4, etc
 // numbers: [2, 2, 0, 6] for cycle 1, 3, 5, etc
 NPAlternatingNode : NPParserNode {
-	get_events { |cycle, dur|
+	get_new_events { |cycle, dur|
 		var node = children.wrapAt(cycle);
-		^node.get_events(cycle, dur);
+		^node.get_events(cycle, dur * stretch);
 	}
 }

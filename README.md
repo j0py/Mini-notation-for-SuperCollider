@@ -189,6 +189,12 @@ NP(~rhythm)
 ```
 NP(~a).snd("bd <~ [~ bd:2/1.5]> ~ ~ sn*3/2 ~ ~ ~").play(0.5).mon(0.3);
 ```
-next is to make stretching work for ```[]``` and ```<>``` too.
 
+20211221: stretching with ```*/@``` works for ```[]``` and ```<>``` too:
+
+```
+NP(~bdsn).snd("bd ~ ~ ~").play(0.5).mon(0.7);
+NP(~hh).snd("~ ~ ~ hh@0.4/2").play(0.5).mon(0.7);
+NP(~cl).snd("~ <sn:6 ~> [sn:6 sn:5 <ch sn:7>/5]/3 ~").play(0.5).mon(0.7);
+```
 
