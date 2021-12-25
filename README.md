@@ -155,14 +155,6 @@ Just like ```bin()``` you can think of much shorter hexadecimal notation. ```"92
 
 ```!``` repeat the last step, e.g.: ```"bd bd bd" = "bd bd !" = "bd!3"```
 
-```*``` ```"bd sn*2" = "bd [sn sn]"``` plays 2 snares in same step, so speeds up
-
-```/``` ```"bd sn/2" = "bd <sn ~>"``` plays 1/2 snare in one step, next cycle
-        it plays the other half of the snare, which yields silence.
-        slows down
-
-```@``` ```[bd sn@0.5]``` makes duration of the snare half as long
-
 ```bd(3,8)``` euclidian rhythms ( ```bd:2(3,8)``` is also possible )
 
 ## Progress:
