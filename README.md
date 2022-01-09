@@ -159,6 +159,10 @@ This is how you can install it on Linux. Without using symbolic links, you can o
 
 Just like ```bin()``` you can think of much shorter hexadecimal notation. ```"92"``` in hex equals binary ```"10010010"```.
 
+```,``` paralell running steps
+
+```!``` repeat the last step, e.g.: ```"bd bd bd" = "bd bd !" = "bd!3"```
+
 ```bd(3,8)``` euclidian rhythms ( ```bd:2(3,8)``` is also possible )
 
 
