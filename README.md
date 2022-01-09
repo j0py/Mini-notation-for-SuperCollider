@@ -1,143 +1,153 @@
-# Tidal-syntax-for-SuperCollider
-Use Tidal syntax to play with NodeProxy objects.
+# Mini-notation-for-SuperCollider
+Use Tidal Mini notation in a Pbind.
+
+When exploring Tidal i liked the short "mini notation" syntax a lot.  
+Wish we had that as an option in SuperCollider.. now, we do!
+
+In Tidal you specify things like so: ```"bd:1 ~ sn:3 hh"```.
+
+This string specifies what should happen during a "cycle".
+
+In the example we see 4 steps in the cycle, separated by spaces.   
+In step 1 sample number 1 from the "bd" samples is played.   
+Step 2 is a Rest step.
+Step 3 plays sample number 3 from the "sn" samples.  
+Step 4 plays sample 0 from the "hh" samples.   
+
+The colon is optional; it divides the step in a ```string:number```. You can omit the colon and the number, and in that case number 0 is assumed.
+
+The part before the colon may also be a synthdef name, and then the number after the colon is interpreted as a note number (degree).
+
+A mini-notation string like above can specify a lot for a Pbind:
+
+When playing a sample:
+- the \dur is specified: 4 steps each with duration 0.25 (1 cycle = 1 beat)
+- the \instrument is assumed a \playbuf synthdef which needs a \bufnum.
+- the \bufnum can be calculated from sample name and sample number.
+- the \type is \note, but if "~" is encountered, the \type = \rest.
+
+When playing a synthdef:
+- the \dur is specified like with the sample above.
+- the \instrument is the string part before the colon (a synthdef).
+- the \degree is the part after the colon (an integer).
+- the \type can be generated as with the sample above.
+
+Tidal uses this notation multiple times on one line to specify multiple things. ```$ bd:1 ~ sn:2 hh # 3 0 1 2``` Specifies the same as above, only after the ```#``` a second mini-notated string is specified, which overrides the _number_ values of the ```$``` string before it.
+
+## Samples
+
+Samples are expected in ```Library.at(\samples)```.
+
+If you have a "samples" folder in the same folder as your current .scd file, then you could do this:
+
+```
+s.waitForBoot({
+	("samples".resolveRelative +/+ "*").pathMatch.do({ |bank|
+		Library.put(
+			\samples,
+			bank.basename.withoutTrailingSlash.asSymbol,
+			(bank +/+ "*.*").pathMatch.collect({ |file|
+				Buffer.read(s, file)
+			})
+		);
+	});
+	s.sync;
+});
+```
+
+This would read ALL files (.wav, .aiff, etc) as samples into the library.
+
+Each sub-folder of the "samples" folder will appear in the Library under the \samples key, and it will hold an Array with audio Buffers read from the files that were found in the sub-folder.
 
 ## The idea
 
-When exploring Tidal i found the short syntax quite nice to use.
-
-This project tries to create that in SClang.
-
-The basic idea is this:
+We could use mini-notation in a ProxySpace to specify keys for a Pbind like so:
 
 ```
-NP(~a).snd("bd:2 hh:1 cl:1 sn:7").play(0.7).mon(0.5);
+~a.play;
+~a[0] = Pbindf(
+	Mbind("S bd:2 hh:1 cl:1 sn:7 N 1 2 3 A 6 2 P -9 9"),
+	\amp, Mnum("0.25 <0.5 1> 0.75"),
+	\pan, Pwhite(-1, 1),
+);
 ```
 
-The NP class is given a NodeProxy, and has (possibly many) chained methods.  
-These methods will operate on the NodeProxy.
+The Mbind generates a Pbind, and the Mnum generates a Pattern.
 
-NP will initialize the NodeProxy with:
-```
-proxy.ar(2);
-proxy.source = { Silent.ar()!2 };
-```
+### Mbind
 
-The ```snd()``` method is given a specification what sound(s) to play.  
-This specification is parsed and then stored in the NP class.
-The specification above specifies 4 steps in a sequence.
+The Mbind class returnes a Pbind based on the given mini-notation string.  
 
-Each step starts with a string, and may have extra characters followed by numbers. These extra characters are ```:/*@```.
+In fact, you can give it 4 mini-notation strings: S is for the sound, N is for the number, A is for \amp, P is for \pan. All 4 are optional.
 
-## The Samples class
+All 4 mini-notation strings are capable of delivering the \dur pattern for the Pbind, so which one should be used?
 
-NP works together with a Samples class. With this class, you can load samples into memory, and then these can be played by NP.  
+The _first_ specified string will deliver the \dur pattern, but it is overridden by the _last_ specified string which has an extra + sign added.
 
-```Samples.load(<path>, <ext>)``` loads samples. You specify the ```<path>``` relative to the currently loaded file in SCLang. With ```<ext>``` you can let Samples find all ".wav" or ".aiff" files. But not both at the same time (yet).
+```Mbind("S bd:2 hh:1 cl:1 sn:7 N 1 2 3 A+ 6 2 2 P -9 9"),```
 
-Samples expects each subfolder of the specified path folder to contain a bunch of sample files (stereo). The _name_ of the subfolder is what you specify in the string part of a step in the mini-notation.  
-If there is a ```:<number>``` part after this name, then this means that the step wants to use the number-th sample in the subfolder. Numbering starts with 0 (the default number) and wraps around.
+The \dur pattern generated by the S part is not used in the final Pbind, but instead the \dur pattern generated by the A part is used. This would give a triplet feel with accent on each first note.
 
-Samples can load multiple paths this way.
+Amp by the way is specified as an Integer number from 0 - 9. It is divided by 9 internally, so the range ultimately is 0.0 - 1.0. This way, the notation is shortened a bit.
 
-Given the name of a step, NP will first ask Samples if it has a sample with that name. If so then NP uses built-in ```np_playbuf``` synthdef to play it. If not so, then NP will play a synthdef with that name. The number, then, will be interpreted as a ```degree``` (if lower that 20) or as a ```midinote```.
+Pan is specified as an Integer from -9 to 9, and also divided by 9, resulting in -1.0, 1.0 range. Having to write things like 0.33 or 0.45 is cumbursome, so just a simple 1-digit number, which will be divided by 9 will work faster. How many different panning positions do you need?
 
-## The 'structure' of the cycle
+### Mnum
+
+Mnum can generate a Pattern for you:
 
 ```
-NP(~a).snd("bd:2 hh:1 cl:1 sn:7").play(0.7).mon(0.5);
-```
-The structure / timing for the Pbind can be derived from any given specification. The specification above shows us 4 steps (notes) to play, so the resulting durations should be ```[1/4, 1/4, 1/4, 1/4]``` used in a Pseq in the Pbind.
-
-We can also specify the numbers separately with the ```num()``` function.
-
-```
-NP(~a).snd("bd:5 hh cl sn").num("2 1 1 7").play(0.7).mon(0.5);
+	\xxx, Mnum("0.25 <0.5 1> 0.75"),
 ```
 
-For the first step, "bd" sample number 2 will be played (5 is ignored).
+Mnum will parse the mini-notation string, and only use the string parts before the colons. So when using Mnum, you always omit the colons and numbers, like above. Each string will we converted to a floating point number, and these values will be returned as a Pseq pattern.
 
-In NP, each method has two versions: one regular, and one postfixed with an ```_``` character.   
-The rule is that the _first_ method call that takes a specification will determine the structure for the Pbind, but the _last_ method call ```xxx_``` method that takes a specification will override that.
+In the example above you see two strange characters: ```< and >```.   
+These are part of the mini-notation as defined for the Tidal language.   
+I have not incorporated all mini-notation options, but a useable bunch of them.
 
-The ```param()``` method lets you specify values for any other parameter for the played synthdef (np_playbuf or one of your own synthdefs). This method call could also be the one that determines the structure.
+## Mini-notation options
 
-```
-NP(~a).snd("bd:5 hh:1 cl:2 sn:7").param_(\amp, "0.2 1 0.7").play(0.7).mon(0.5);
-```
-This would play accents with a triplet feel, while the 4 sample steps wrap around.
+### Nesting, alternating
 
-## Rests
+Nesting (```[step1 step2 ..]```) puts one or more steps in the duration space of one step. Samples/notes are thus played faster.
 
-As in Tidal, the ```"~"``` string denotes a rest. You can use this string inside the ```snd()``` or ```num()``` specification to create a rest.
+Alternating (```<step1 step2 ..>```) will alternate the steps between the brackets. The first step is played during the first cycle, and during the next cycle, the second step will be played (if any) and so on.
 
-## Nesting, alternating
+You may nest these things as deep as you want.
 
-NP supports nested steps using ```[ ]``` and alternating steps using ```< >```.
+### Speed
 
-```
-NP(~a).snd("bd <sn:2 [sn:4 bd:2]> ~").play(0.5).mon(0.3);
-```
-Snaredrum 2 is alternated with a snaredum 4/bassdrum 2 group (playing in double tempo).
+```*``` ```"bd sn*1.5"``` plays 1.5 snare steps inside 1 step.
 
-## Play()
+This is a bit tricky: during the step with duration 0.5, 1.5 snare-steps are played.   
+That means, in cycle 0, a snare is played at the beginning of the 0.5 duration space, and another is played at 2/3 of the 0.5 beat duration.
+In cycle 1, the 0.5 beat duration will start with silence from the snare step from cycle 0, and on 1/3 of the 0.5 beat duration, a snare will be played. This last snare will exactly fill up the cycle. Cycle 2 will be the same as cycle 0, cycle 3 the same as cycle 2, etc.   
+The result is, that the snaredrum plays 1.5 times faster "through" the rhythm.
 
-The ```play()``` method will create a Pbind on the NodeProxy, using the information that has been stored inside the NP object by other methods that were called before ```play()``` was called.
+```/``` ```"bd sn/1.5"``` like above, but plays snare 1.5 times slower.
 
-The parameter to ```play()``` is the volume with which the Pbind should play on the NodeProxy private bus.
+```@``` ```[bd sn@0.5]``` makes duration of the snare half as long
 
-The default slot index where the Pbind is added is slot 10, but you may specify another slot number. This way you could play more than 1 Pbind at the same time on one NodeProxy.
+You may also speed up nested groups of course!
 
-## Mon()
-
-The ```mon()``` method will call ```play``` on the NodeProxy, and the parameter to ```mon()``` is the monitor volume to use. You could also play the NodeProxy directly, instead of through the NP class (```~a.vol_(0.5).play```).
+```"bd [hh <hh cl> hh]/2 <~ sn> hh"```
 
 ## Installation
 
 Use ```git clone``` to get the sources somewhere on disk.
 
 Create a symbolic link inside the ```~/.local/share/SuperCollider/Extensions``` folder, pointing to the place where you have cloned this repository to.
-Like this: ```ln -s somehwere-on-disk np```. In Extensions folder, you will now have a symbolic link named "np" pointing to the contents of the repository.
 
-Start SuperCollider (this will recompile all classes) and the NP class should be available. SuperCollider will follow the symbolic link.
+Like this: ```ln -s cloned-repository mini```.
 
-This is how you can install it on Linux. Without using symbolic links, you can of course just copy all ```*.sc``` files of this repo into Extensions directly.
+In Extensions folder, you now have a symbolic link named "mini" pointing to the contents of the repository.
 
-## Example
+Start SuperCollider (this will recompile all classes) and the Mbind / Mnum classes should be available. SuperCollider will follow the symbolic link.
 
-Create a ```.scd``` file with this code in it:  
-(i assume a "samples" folder with "bd", "sn" etc subfolders with samples)
+The name of the symbolic link ("mini") may be anything.
 
-```
-s.boot;
-
-Samples.load("samples", "wav");
-
-p = ProxySpace.push(s).makeTempoClock(100/60).quant_(2);
-
-NP(~a).snd("bd:2 [sn:1 sn:1] ~ bd:2").play(0.5).mon(0.3);
-
-NP(~b).snd("~ ~ [hh hh hh] ~").play(0.5).mon(0.3);
-
-p.clock.tempo_(60/60)
-```
-
-Evaluate this line by line in SuperCollider.
-
-## Example setting the structure and using param
-
-```
-s.boot;
-
-Samples.load("samples", "wav");
-
-p = ProxySpace.push(s).makeTempoClock(60/60).quant_(2);
-
-NP(~a).snd("bd <~ [~ bd:2]> ~ ~ sn ~ ~ ~").play(0.5).mon(0.3);
-
-NP(~b).snd("~ ~ hh hh").param_(\amp, "0.2 0.8 0.2").play(0.5).mon(0.4);
-
-NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
-```
+This is how you can install it on Linux. Without using symbolic links, you can of course just copy ```mini.sc``` into Extensions folder directly.
 
 ## Future plans
 
@@ -149,52 +159,7 @@ NP(~c).snd("rd").num_("1 1 1 3").play(0.5).mon(0.1);
 
 Just like ```bin()``` you can think of much shorter hexadecimal notation. ```"92"``` in hex equals binary ```"10010010"```.
 
-## Working on:
-
-```,``` paralell running steps
-
-```!``` repeat the last step, e.g.: ```"bd bd bd" = "bd bd !" = "bd!3"```
-
-```*``` ```"bd sn*2" = "bd [sn sn]"``` plays 2 snares in same step, so speeds up
-
-```/``` ```"bd sn/2" = "bd <sn ~>"``` plays 1/2 snare in one step, next cycle
-        it plays the other half of the snare, which yields silence.
-        slows down
-
-```@``` ```[bd sn@0.5]``` makes duration of the snare half as long
-
 ```bd(3,8)``` euclidian rhythms ( ```bd:2(3,8)``` is also possible )
 
-## Progress:
 
-20211128: parsing ```*/@``` works (stretching)  
-20211201: ~ in notes is also a \rest; shortened Pbind;  
-20211210: using pbindf, add any other param for your synthdef:  
-
-```
-(
-NP(~rhythm)
-.num("2 0 [1 5] <8 ~ [5 4] 2>")
-.snd("potsandpans")
-.param(\amp, "0.3 0.2 1 0.3 0.6")
-.param(\pan, "-1 0 0 0 1")
-.param(\spread, "0")
-.play(0.3)
-.mon(0.5);
-)
-```
-
-20211211: the ```*/@``` (stretching) works for value steps now  
-
-```
-NP(~a).snd("bd <~ [~ bd:2/1.5]> ~ ~ sn*3/2 ~ ~ ~").play(0.5).mon(0.3);
-```
-
-20211221: stretching with ```*/@``` works for ```[]``` and ```<>``` too:
-
-```
-NP(~bdsn).snd("bd ~ ~ ~").play(0.5).mon(0.7);
-NP(~hh).snd("~ ~ ~ hh@0.4/2").play(0.5).mon(0.7);
-NP(~cl).snd("~ <sn:6 ~> [sn:6 sn:5 <ch sn:7>/5]/3 ~").play(0.5).mon(0.7);
-```
 
