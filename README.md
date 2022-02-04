@@ -176,7 +176,7 @@ In his notation, each character stands for 1 step of the cycle.
 
 So specifying a cycle of 4 steps only takes 4 characters!
 
-There are 2 special characters in his notation: the _space_ character and the "x". A space does not play anything, but it just takes up the time of 1 step. Any note played before the space will continue to sound, so in fact the space adds to the duration of the previously played note.  
+There are 2 special characters in his notation: the _space_ character and the "x".   A space does not play anything, but it just takes up the time of 1 step. Any note played before the space will continue to sound, so in fact the space adds to the duration of the previously played note.  
 The "x" character plays a rest, and the note played right before it will end when that rest is played.
 
 Consider this 4 step sequence, using a long sounding Crash cymbal sample.
