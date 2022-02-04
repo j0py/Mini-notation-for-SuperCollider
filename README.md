@@ -188,13 +188,13 @@ In Chucklib notation you can do this:
 
 In Tidal notation, you would have to do this:
 
-```"S cr N 1 2 "``` The cycle has 2 steps of 0.5.
+```"S cr N 1 2 "``` The cycle has only 2 steps instead of 4.
 
 In Chucklib notation you can choke the Crash in step 2 by playing an "x":
 
 ```"S cr N 1x2 "``` Crash sample 1 starts in step 1, but is stopped in step 2, and in step 3 Crash sample 2 starts as before.
 
-In Tidal notation, you would have to do this:
+In Tidal notation, you would then have to do (something like) this:
 
 ```"S cr N 1 ~ 2@1.5"``` To choke the Crash, we have to add a rest in step 2. But then the cycle has 3 steps, which gives a triplet feel, and we do not want that. So we have to specify step 3 to have a longer duration. It gets 1/3 but we want it to have 1/2 duration, so we multiply the step using "@" by a factor 3/2. Supplying a rest "~" for step 4 would choke Crash 2, and that is not what we want.
 
@@ -218,31 +218,30 @@ Tidal: ```"S hh N 1 [1 ~ ~ <2 [8 9]>] 1 4"```
 
 Chucklib: ```"S hh N 1|1x <2|89>|1|4"```
 
-In Chucklib it is easy to stop the sample that started in step 1 using the "x". You can stop it in step 2, or step 3, or let it sound until step 4 starts.   
-In Tidal notation i would have to think harder to accomplish the same result.
+In Chucklib it is easy to stop the sample that started in step 1 using the "x". You can stop it in step 2, or step 3, or let it sound until step 4 starts.
+In Tidal notation i would have to think harder to accomplish equal results.
 
 In Tidal you can specify more than 1 sample / synthdef on one line.  
 Using Chucklib notation this is only possible when using the "|" character to separate the steps (```"S bd|hh|sn N 1233"```).
 
-But in practice i think it is better to separate the instruments in separate Pbind's / NodeProxies, because you want different effects, pannings etc.
-
 In Chucklib, the "~" is used to specify a glissando. This can be used to glide from one pitch to another, but it could also glide any other Pbind parameter from one value to another (\amp, \pan, maybe even \dur).
 
-```"S sn N 1111 A 0~9"``` During one cycle, we hear 4 snaredrum hits, with amplitudes 0, 0.25, 0.5, 0.75. Amplitude 1 is reached at the _end_ of step 4. Remember that in Mbind, the amp number is divided by 9 internally so we can supply integers from 0 to 9 in the notation instead of (longer) 0.25 and such.
+```"S sn N 1111 A 0~9"``` During one cycle, we hear 4 snaredrum hits, with amplitudes 0, 0.25, 0.5, 0.75. Amplitude 1 is reached at the _end_ of step 4, because the A pattern uses a cycle containing only 1 step.  
+The amp numbers given are divided by 9 internally so we can supply short integers from 0 to 9 in the notation instead of 0.25 and such.
 
 Note that each uppercase letter in the notation must have a space character before and after it, to keep things readable / parseable. We will not put a space at the start of the notation string though.   
-If a pattern ends with a space, then the next uppercase letter will then have _two_ spaces before it.
+If a pattern ends with a space, then the next uppercase letter will have _two_ spaces before it.
 
-I will make a new class called "Pmini" that supports this notation (including the alternate option with ```<>```. Nesting using ```[]``` does not seem necessary to have (yet).
+I will make a new class called "Pmini" that supports the Chucklib notation, including the _alternate_ option with ```<>```. Nesting using ```[]``` does not seem necessary to have (yet).
 
 Panning wil have to change to 0..8, divided by 4 and then subtract 1.  
 This will then occupy 1 character and be able to pan in the center.
 
-Might as well use 0..8 for amplitude as well to avoind confusion.
+Might as well use 0..8 for amplitude as well to avoid confusion.
 
 If the notation string has uppercase letters, then it will generate a Pbind.  
-The _first_ part will supply ```\dur```, but this is overruled by the _last_ part where the uppercase letter has a "+" sign added to it (if any).   
-It is fun to switch this "+" from one part to the other during live coding.
+The _first_ part will supply ```\dur```, but this is overruled by the _last_ part where the uppercase letter has a "+" sign added to it (if any).
+It is fun to switch this "+" from one part to the other while playing, especially if the parts chop one cycle in different numbers of steps.
 
 If the notation does not contain uppercase letters then it will generate a Pseq returning float values.
 
