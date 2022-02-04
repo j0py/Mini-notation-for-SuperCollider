@@ -169,65 +169,92 @@ Each uppercase letter indicates what part immediately following it means.
 
 This makes it easy to add more letters / features.
 
-## James Harkins notation.
+## I like Chucklib too
 
-The other day i discovered the notation system of James Harkins, who is also inspired by Tidal. In his notation, each character stands for 1 step of the cycle.
+The ddwChucklib quark by James Harkins has a notation system that is very short too, and is also inspired by Tidal (thinking in "cycles").  
+In his notation, each character stands for 1 step of the cycle.
 
 So specifying a cycle of 4 steps only takes 4 characters!
 
-There are 2 special characters in his notation: the _space_ character does not play a note or a rest, but it just takes up the time of 1 step. Any note played before the space will continue to sound. The "x" character plays a rest. Any note played before it will end when the rest is played.
+There are 2 special characters in his notation: the _space_ character and the "x". A space does not play anything, but it just takes up the time of 1 step. Any note played before the space will continue to sound, so in fact the space adds to the duration of the previously played note.  
+The "x" character plays a rest, and the note played right before it will end when that rest is played.
 
-Consider this 4 step sequence, using a long sounding Crash cymbal sample:
+Consider this 4 step sequence, using a long sounding Crash cymbal sample.
 
-```"S cr N 1 2 "``` would hit Crash cymbal sample 1, let it sound until step 3, and in step 3 hit Crash cymbal sample 2.
+In Chucklib you can do this:
 
-```"S cr N 1x2 "``` would hit Crash cymbal sample 1, choke it in step 2, and in step 3 hit Crash cymbal sample 2.
+```"S cr N 1 2 "``` Crash sample 1 is hit at step 1, it continues to sound during step 2, and in step 3 Crash sample 2 is started, which continues to sound through step 4.
 
 In Tidal mini-notation, you would have to do this:
 
-```"S bd N 1 2"``` We make the cycle have just 2 steps.
+```"S cr N 1 2 "``` The cycle has 2 steps of 0.5.
 
-```"S bd N 1 ~ 2@1.5"``` To choke the Crash, we have to add a rest in step 2. But then the cycle has 3 steps, which gives a triplet feel, and we do not want that. So we have to specify step 3 to have a longer duration. It gets 1/3 but we want it to have 1/2 duration, so we multiply the step using "@" by a factor 3/2.
+In Chucklib you can choke the Crash in step 2 by playing an "x":
 
-In this situation, i favor James' notation over the Tidal one. Especially because the length of the notation stays 4 characters and you do not have to calculate how to get from 1/3 to 1/2. You just "see it".
+```"S cr N 1x2 "``` Crash sample 1 starts in step 1, but is stopped in step 2, and in step 3 Crash sample 2 starts as before.
 
-Would _nesting_ and _alternating_ be possible using James' notation?
+In Tidal mini-notation, you would have to do this:
 
-Tidal: ```"S hh N 1 [1 [~ 2]] 1 4"``` End step 2 with an extra 16th hh hit.
+```"S cr N 1 ~ 2@1.5"``` To choke the Crash, we have to add a rest in step 2. But then the cycle has 3 steps, which gives a triplet feel, and we do not want that. So we have to specify step 3 to have a longer duration. It gets 1/3 but we want it to have 1/2 duration, so we multiply the step using "@" by a factor 3/2. Supplying a rest "~" for step 4 would choke Crash 2, and that is not what we want.
 
-James: ```"S hh N 1|1  2|1|4"``` Using ```|``` to mark the steps.
+In this situation, i like the Chucklib notation better than Tidal. Especially because the length of the notation stays 4 characters. You just pop-in a letter ""x" instead of a space to stop the sound.
 
-Tidal: ```"S hh N 1 [1 <7 2>] 1 4"``` Double step 2 with an extra hh. Alternate between hh sample 7 and 2.
+Would _nesting_ and _alternating_ be possible using the Chucklib notation?
 
-James: ```"S hh N 1|1<72>|1|4"``` Perfectly possible!
+Tidal: ```"S hh N 1 [1 ~ ~ 2] 1 4"``` End step 2 with an extra 16th hh hit.
 
-A little more complicated maybe:  
+Chucklib: ```"S hh N 1|1x 2|1|4"``` Using "|" to mark the steps.
+
+Tidal: ```"S hh N 1 [1 <7 2>] 1 4"``` Double step 2 with an extra hh. Alternate the extra hh using sample 7 and 2.
+
+Chucklib: ```"S hh N 1|1<72>|1|4"``` Perfectly possible if you consider ```<72>``` to take up the space of 1 step. Inside the ```<>``` there are 2 steps.
+
+Let's try a little more complicated case:  
+
 The second step should get an extra 16th hh at the end, using sample number 2 during even cycles, but during odd cycles, two 32nd hh strokes must be used using sample numbers 8 and 9.
 
-Tidal: ```"S hh N 1 [1 [~ <2 [8 9]>]] 1 4"```
+Tidal: ```"S hh N 1 [1 ~ ~ <2 [8 9]>] 1 4"```
 
-James: ```"S hh N 1|1  <2|89>|1|4"```
+Chucklib: ```"S hh N 1|1x <2|89>|1|4"```
 
-In Tidal you can specify more than 1 sample / synthdef in one line.  
-Using James' notation this is only possible when using the "|" character to separate the steps.
+In Chucklib it is easy to stop the sample that started in step 1 using the "x". You can stop it in step 2, or step 3, or let it sound until step 4 starts.   
+In Tidal notation i would have to think harder to accomplish the same result.
+
+In Tidal you can specify more than 1 sample / synthdef on one line.  
+Using Chucklib notation this is only possible when using the "|" character to separate the steps (```"S bd|hh|sn N 1233"```).
 
 But in practice i think it is better to separate the instruments in separate Pbind's / NodeProxies, because you want different effects, pannings etc.
 
-Using "x" for a rest frees the "~" to create a glissando, which would be nice to have. The glissando could then be used for the degree (gliding pitch), but also any other Pbind parameter (gliding \amp, gliding \pan, maybe even gliding \dur).
+In Chucklib, the "~" is used to specify a glissando. This can be used to glide from one pitch to another, but it could also glide any other Pbind parameter from one value to another (\amp, \pan, maybe even \dur).
 
-```"S sn N 1111 A 0~9"``` During one cycle, we hear 4 snaredrum hits, with amplitudes 0, 0.25, 0.5, 0.75. Amplitude 1 is reached at the _end_ of step 4.
+```"S sn N 1111 A 0~9"``` During one cycle, we hear 4 snaredrum hits, with amplitudes 0, 0.25, 0.5, 0.75. Amplitude 1 is reached at the _end_ of step 4. Remember that in Mbind, the amp number is divided by 9 internally so we can supply integers from 0 to 9 in the notation instead of (longer) 0.25 and such.
 
-I think i will first redo Pnum so that it supports James' notation, and i will name that Pmini. It will check the given string: if it has uppercase letters, then it will generate a Pbind ("N" will supply \dur).  
-If it does not contain uppercase letters then it will generate a Pseq returning float values:
+Note that each uppercase letter in the notation must have a space character before and after it, to keep things readable / parseable. We will not put a space at the start of the notation string though.   
+If a pattern ends with a space, then the next uppercase letter will then have _two_ spaces before it.
+
+I will make a new class called "Pmini" that supports this notation (including the alternate option with ```<>```. Nesting using ```[]``` does not seem necessary to have (yet).
+
+Panning wil have to change to 0..8, divided by 4 and then subtract 1.  
+This will then occupy 1 character and be able to pan in the center.
+
+Might as well use 0..8 for amplitude as well to avoind confusion.
+
+If the notation string has uppercase letters, then it will generate a Pbind.  
+The _first_ part will supply ```\dur```, but this is overruled by the _last_ part where the uppercase letter has a "+" sign added to it (if any).   
+It is fun to switch this "+" from one part to the other during live coding.
+
+If the notation does not contain uppercase letters then it will generate a Pseq returning float values.
 
 ```
 ~a.play;
 ~a[0] = Pbindf(
-	Pmini("S bd N 12 1"),       // bass drum rhythm specifying sample numbers
-	\amp, Pmini("1<24>3") / 4,  // triplet feel amp pattern
-	\pan, Pmini("0~2") - 1,     // gliding pan pattern
-);
+  Pmini("S bd N 12 1 A 8<13>3 P 0~8"),
+  \anything_else, Pmini("1234"),
+  );
 ```
 
+This would be a 4 steps bass drum rhythm using samples 1 and 2, with a triplet feel accent pattern, and gliding pan. Wouldn't that be neat?
 
+If you work with a synthdef, then the N part would give you degrees, and you would supply \octave and \scale as separate keys in the Pbindf. I can imagine maybe some extra parameters for Pmini to make that a bit shorter to specify.
 
+Also Chucklib has nice additions like ```'``` and ```,``` to move a step up/down one octave, and also characters for sharps and flats. I put those in too.
