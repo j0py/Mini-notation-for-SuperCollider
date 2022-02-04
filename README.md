@@ -171,7 +171,7 @@ This makes it easy to add more letters / features.
 
 ## I like Chucklib too
 
-The ddwChucklib quark by James Harkins has a notation system that is very short too, and is also inspired by Tidal (thinking in "cycles").  
+The ddwChucklib quark by James Harkins has a notation system that is very short too, and is also inspired by Tidal (thinking in "cycles").
 In his notation, each character stands for 1 step of the cycle.
 
 So specifying a cycle of 4 steps only takes 4 characters!
@@ -181,19 +181,19 @@ The "x" character plays a rest, and the note played right before it will end whe
 
 Consider this 4 step sequence, using a long sounding Crash cymbal sample.
 
-In Chucklib you can do this:
+In Chucklib notation you can do this:
 
 ```"S cr N 1 2 "``` Crash sample 1 is hit at step 1, it continues to sound during step 2, and in step 3 Crash sample 2 is started, which continues to sound through step 4.
 
-In Tidal mini-notation, you would have to do this:
+In Tidal notation, you would have to do this:
 
 ```"S cr N 1 2 "``` The cycle has 2 steps of 0.5.
 
-In Chucklib you can choke the Crash in step 2 by playing an "x":
+In Chucklib notation you can choke the Crash in step 2 by playing an "x":
 
 ```"S cr N 1x2 "``` Crash sample 1 starts in step 1, but is stopped in step 2, and in step 3 Crash sample 2 starts as before.
 
-In Tidal mini-notation, you would have to do this:
+In Tidal notation, you would have to do this:
 
 ```"S cr N 1 ~ 2@1.5"``` To choke the Crash, we have to add a rest in step 2. But then the cycle has 3 steps, which gives a triplet feel, and we do not want that. So we have to specify step 3 to have a longer duration. It gets 1/3 but we want it to have 1/2 duration, so we multiply the step using "@" by a factor 3/2. Supplying a rest "~" for step 4 would choke Crash 2, and that is not what we want.
 
