@@ -76,7 +76,7 @@ The Mbind generates a Pbind, and the Mnum generates a Pattern.
 
 ### Mbind
 
-The Mbind class returnes a Pbind based on the given mini-notation string.  
+The Mbind class returns a Pbind based on the given mini-notation string.  
 
 In fact, you can give it 4 mini-notation strings: S is for the sound, N is for the number, A is for \amp, P is for \pan. All 4 are optional.
 
@@ -122,7 +122,7 @@ You may nest these things as deep as you want.
 
 This is a bit tricky: during the step with duration 0.5, 1.5 snare-steps are played.   
 That means, in cycle 0, a snare is played at the beginning of the 0.5 duration space, and another is played at 2/3 of the 0.5 beat duration.
-In cycle 1, the 0.5 beat duration will start with silence from the snare step from cycle 0, and on 1/3 of the 0.5 beat duration, a snare will be played. This last snare will exactly fill up the cycle. Cycle 2 will be the same as cycle 0, cycle 3 the same as cycle 2, etc.   
+In cycle 1, the 0.5 beat duration will start with silence from the snare step from cycle 0, and on 1/3 of the 0.5 beat duration, a snare will be played. This last snare will exactly fill up the cycle. Cycle 2 will be the same as cycle 0, cycle 3 the same as cycle 1, etc.   
 The result is, that the snaredrum plays 1.5 times faster "through" the rhythm.
 
 ```/``` ```"bd sn/1.5"``` like above, but plays snare 1.5 times slower.
