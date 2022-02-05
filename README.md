@@ -196,9 +196,9 @@ In Chucklib notation you can choke the Crash in step 2 by playing an "x":
 
 In Tidal notation, you would then have to do (something like) this:
 
-```"S cr N 1 ~ 2@1.5"``` To choke the Crash, we have to add a rest in step 2. But then the cycle has 3 steps, which gives a triplet feel, and we do not want that. So we have to specify step 3 to have a longer duration. It gets 1/3 but we want it to have 1/2 duration, so we multiply the step using "@" by a factor 3/2. Supplying a rest "~" for step 4 would choke Crash 2, and that is not what we want.
+```"S cr N [1 ~] 2"``` To choke the Crash, we have to add a rest in step 2. But then the cycle would have 3 steps, which gives a triplet feel, and we do not want that. So we have to next the first step and the added rest, so together they will take up half of the cycle. The third step (with value 2) will then get the other half of the cycle.
 
-In this situation, i like the Chucklib notation better than Tidal. Especially because the length of the notation stays 4 characters. You just pop-in a letter ""x" instead of a space to stop the sound.
+The Chucklib notation seems simpeler.
 
 Would _nesting_ and _alternating_ be possible using the Chucklib notation?
 
