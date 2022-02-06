@@ -1,8 +1,8 @@
 /*
 Recursive tidal mini-notation parser.
 Parses a string, resulting in a tree of objects (TParserNode's).
-Pmini itself is the root node, it only has children, no siblings.
-Pmini is meant to be used inside a Pbind.
+Mbind itself is the root node, it only has children, no siblings.
+Mbind is meant to be used inside a Pbind.
 
 returns Pn(Plazy({ .. Pseq(List([<dur>, <sound>, <note>, <type>], [<dur>, <sound>, <note>, <type>], ..))}))
 

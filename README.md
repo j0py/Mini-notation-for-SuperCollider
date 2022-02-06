@@ -249,7 +249,7 @@ If the notation does not contain uppercase letters then it will generate a Pseq 
 ~a.play;
 ~a[0] = Pbindf(
   Pmini("S bd N 12 1 A 8<13>3 P 0~8"),
-  \anything_else, Pmini("1234"),
+  \anythingelse, Pmini("1234"),
   );
 ```
 
@@ -258,3 +258,5 @@ This would be a 4 steps bass drum rhythm using samples 1 and 2, with a triplet f
 If you work with a synthdef, then the N part would give you degrees, and you would supply \octave and \scale as separate keys in the Pbindf. I can imagine maybe some extra parameters for Pmini to make that a bit shorter to specify.
 
 Also Chucklib has nice additions like ```'``` and ```,``` to move a step up/down one octave, and also characters for sharps and flats. I put those in too.
+
+Pmini is implemented in pmini.sc.
